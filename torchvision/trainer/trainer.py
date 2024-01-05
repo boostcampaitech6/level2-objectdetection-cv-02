@@ -38,7 +38,7 @@ class Trainer(BaseTrainer):
         wandb.config.update(self.config)
 
         # Wandb run name으로 이후 수정
-        self.save_dir = self.increment_path(os.path.join(self.config.model_dir, self.config.name))
+        self.save_dir = self.increment_path(os.path.join(self.config.model_dir, wandb.run.name))
 
         # logging with tensorboard
         self.logger = SummaryWriter(log_dir=self.save_dir)
@@ -138,6 +138,10 @@ class Trainer(BaseTrainer):
 
         if self.valid_dataloader is not None:
             self._valid_epoch(epoch)
+
+        if epoch == self.config.epochs:
+            wandb.finish()
+
 
 
     def _valid_epoch(self, epoch):
