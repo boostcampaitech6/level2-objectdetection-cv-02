@@ -1,121 +1,117 @@
-import argparse
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+import numpy as np
+import cv2
 import os
-import pandas as pd
-from PIL import Image
-from tqdm import tqdm
 
-import model.loss as module_loss
-import model.metric as module_metric
-import model.model as module_arch
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
-from torchvision.transforms import Resize, ToTensor, Normalize
+# faster rcnn model이 포함된 library
+import torchvision
+
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+
+from torch.utils.data import DataLoader, Dataset
+import pandas as pd
+from tqdm import tqdm
 
 
-class TestDataset(Dataset):
-    def __init__(self, img_paths, transform):
-        self.img_paths = img_paths
-        self.transform = transform
+class CustomDataset(Dataset):
+    '''
+      data_dir: data가 존재하는 폴더 경로
+      transforms: data transform (resize, crop, Totensor, etc,,,)
+    '''
 
-    def __getitem__(self, index):
-        image = Image.open(self.img_paths[index])
+    def __init__(self, annotation, data_dir):
+        super().__init__()
+        self.data_dir = data_dir
+        # coco annotation 불러오기 (coco API)
+        self.coco = COCO(annotation)
 
-        if self.transform:
-            image = self.transform(image)
+    def __getitem__(self, index: int):
+        
+        image_id = self.coco.getImgIds(imgIds=index)
+
+        image_info = self.coco.loadImgs(image_id)[0]
+        
+        image = cv2.imread(os.path.join(self.data_dir, image_info['file_name']))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
+        image /= 255.0
+
+        ann_ids = self.coco.getAnnIds(imgIds=image_info['id'])
+        anns = self.coco.loadAnns(ann_ids)
+
+        image = torch.tensor(image, dtype=torch.float32).permute(2,0,1)
+
         return image
-
-    def __len__(self):
-        return len(self.img_paths)
+    
+    def __len__(self) -> int:
+        return len(self.coco.getImgIds())
     
 
-def main(config):
+def inference_fn(test_data_loader, model, device):
+    outputs = []
+    for images in tqdm(test_data_loader):
+        # gpu 계산을 위해 image.to(device)
+        images = list(image.to(device) for image in images)
+        output = model(images)
+        for out in output:
+            outputs.append({'boxes': out['boxes'].tolist(), 'scores': out['scores'].tolist(), 'labels': out['labels'].tolist()})
+    return outputs
+
+
+def main():
     device = torch.device('cuda')
 
-    # meta 데이터와 이미지 경로를 불러옵니다.
-    submission = pd.read_csv(os.path.join(config.test_dir, 'info.csv'))
-    image_dir = os.path.join(config.test_dir, 'images')
-    image_paths = [os.path.join(image_dir, img_id) for img_id in submission.ImageID]
-
-    # Test Dataset 클래스 객체를 생성하고 DataLoader를 만듭니다.
-    transform = transforms.Compose([
-        Resize(config.resize, Image.BILINEAR),
-        ToTensor(),
-        Normalize(mean=(0.548, 0.504, 0.497), std=(0.237, 0.247, 0.246))
-    ])
-    dataset = TestDataset(image_paths, transform)
-
-    loader = DataLoader(
-        dataset,
-        batch_size=config.batch_size,
-        shuffle=False
+    annotation = '../../dataset/test.json' # annotation 경로
+    data_dir = '../../dataset' # dataset 경로
+    test_dataset = CustomDataset(annotation, data_dir)
+    score_threshold = 0.05
+    check_point = './checkpoints/faster_rcnn_torchvision_checkpoints.pth' # 체크포인트 경로
+    
+    test_data_loader = DataLoader(
+        test_dataset,
+        batch_size=8,
+        shuffle=False,
+        num_workers=4
     )
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    print(device)
 
-    # 모델을 정의합니다. (학습한 모델이 있다면 torch.load로 모델을 불러주세요!)
-    model_module = getattr(module_arch, config.model)
-    model = model_module(num_classes=18).to(device)
-    model.load_state_dict(torch.load(config.model_path, map_location=device))
+    # torchvision model 불러오기
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    num_classes = 11  # 10 class + background
+    # get number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    model.to(device)
+    model.load_state_dict(torch.load(check_point))
     model.eval()
 
-    # 모델이 테스트 데이터셋을 예측하고 결과를 저장합니다.
-    all_predictions = []
-    for images in tqdm(loader):
-        with torch.no_grad():
-            images = images.to(device)
+    outputs = inference_fn(test_data_loader, model, device)
+    prediction_strings = []
+    file_names = []
+    coco = COCO(annotation)
 
-            if config.multi_head:
-                pred = model(images)
-                pred_mask, pred_gender, pred_age = pred
-                pred = torch.argmax(pred_mask, dim=-1) * 6 + torch.argmax(pred_gender, dim=-1) * 3 + torch.argmax(pred_age, dim=-1)
-                all_predictions.extend(pred.cpu().numpy())
-            else:
-                pred = model(images)
-                pred = pred.argmax(dim=-1)
-                all_predictions.extend(pred.cpu().numpy())
-    submission['ans'] = all_predictions
-
-    # 제출할 파일을 저장합니다.
-    submission.to_csv(os.path.join(config.test_dir, 'submission.csv'), index=False)
-    print('test inference is done!')
+    # submission 파일 생성
+    for i, output in enumerate(outputs):
+        prediction_string = ''
+        image_info = coco.loadImgs(coco.getImgIds(imgIds=i))[0]
+        for box, score, label in zip(output['boxes'], output['scores'], output['labels']):
+            if score > score_threshold: 
+                # label[1~10] -> label[0~9]
+                prediction_string += str(label-1) + ' ' + str(score) + ' ' + str(box[0]) + ' ' + str(
+                    box[1]) + ' ' + str(box[2]) + ' ' + str(box[3]) + ' '
+        prediction_strings.append(prediction_string)
+        file_names.append(image_info['file_name'])
+    submission = pd.DataFrame()
+    submission['PredictionString'] = prediction_strings
+    submission['image_id'] = file_names
+    submission.to_csv('./faster_rcnn_torchvision_submission.csv', index=None)
+    print(submission.head())
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='PyTorch Template')
-    parser.add_argument(
-        "--model", type=str, default="EfficientNetB0MultiHead", help="model type (default: EfficientNetB0MultiHead)"
-    )
-    parser.add_argument(
-        "--test_dir",
-        type=str,
-        default=os.environ.get("SM_CAHNNEL_EVAL", "/data/ephemeral/maskdata/eval")
-    )
-    parser.add_argument(
-        "--resize",
-        nargs=2,
-        type=int,
-        default=[128, 96],
-        help="resize size for image when training",
-    )
-    parser.add_argument(
-        "--multi_head", 
-        type=bool,
-        default=True,
-        help="모델의 head가 1개(num_classes=18)인 경우 False, 3개인 경우 True"
-    )
-    parser.add_argument(
-        "--model_path",
-        type=str,
-        default="/data/ephemeral/home/model/exp/best.pth",
-        help="사용할 모델의 weight 경로를 입력해주세요 (예: /data/ephemeral/home/model/exp/best.pth)"
-    )
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=100,
-        help="input batch size for validing (default: 1000)",
-    )
-    args = parser.parse_args()
-    print(args)
-
-    main(args)
+    main()
