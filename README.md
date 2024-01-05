@@ -1,22 +1,24 @@
 # [AI Tech 6th CV Course] 팀 도라에몽
 
-## 📋 Table of content
+## Table of content
 
-- [대회 개요](#Overview)
-- [팀 소개](#Member)
+- [Overview](#Overview)
+- [Member](#Member)
+- [Approach](#Approach)
+- [Contributions](#Contributions)
 - [File Tree](#filetree)
-- [실행 방법](#Code)
+- [Usage](#Code)
 
 
 
 
 
 <br></br>
-## :pencil2: 대회 개요 <a name = 'Overview'></a>
+## Overview <a name = 'Overview'></a>
 
 
 <br></br>
-## :trophy: 팀 소개 <a name = 'Member'></a>
+## Member <a name = 'Member'></a>
 
 |김찬우|남현우|류경엽|이규섭|이현지|한주희|
 |:--:|:--:|:--:|:--:|:--:|:--:|
@@ -24,7 +26,18 @@
 
 
 <br></br>
-## :deciduous_tree: File Tree <a name = 'filetree'></a>
+
+## Approach <a name = 'Approach'></a>
+
+
+<br></br>
+
+## Contributions <a name = 'Contributions'></a>
+
+
+<br></br>
+
+## File Tree <a name = 'filetree'></a>
 ```
 level2-objectdetection-cv-02
 |
@@ -38,7 +51,8 @@ level2-objectdetection-cv-02
 ```
 
 <br></br>
-## 💻실행 방법 <a name = 'Code'></a>
+## Usage <a name = 'Code'></a>
+
 ### Package install
 
 ### Model training
