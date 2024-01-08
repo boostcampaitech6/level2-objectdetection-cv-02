@@ -18,9 +18,14 @@ class fasterrcnn_resnet50_fpn(BaseModel):
         # box_loss = F.smooth_l1_loss
         # self.model.roi_heads.fastrcnn_loss = custom_loss
 
+    # using in inference
+    def inference(self, image):
+        return self.model(image)
+
+    # using in train
     def forward(self, image, target):
         return self.model(image, target)
-    
+
 
 # Custom Model Template
 class MyModel(nn.Module):
