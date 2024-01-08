@@ -38,6 +38,5 @@ image_id, PredictionString
 ```
 
 ## Todo
-- [ ] ss
-- [ ] 
+- [x] 베이스라인 코드 실행
 - [ ] 
