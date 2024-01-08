@@ -10,12 +10,11 @@ from albumentations.pytorch import ToTensorV2
 import torch
 # faster rcnn model이 포함된 library
 import torchvision
-
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-
 from torch.utils.data import DataLoader, Dataset
 import pandas as pd
 from tqdm import tqdm
+
+import model.model as module_arch
 
 
 class CustomDataset(Dataset):
@@ -36,7 +35,7 @@ class CustomDataset(Dataset):
 
         image_info = self.coco.loadImgs(image_id)[0]
         
-        image = cv2.imread(os.path.join(self.data_dir, image_info['file_name']))
+        image = cv2.imread(os.path.join(self.data_dir, image_info['file_name'].split('/')[1]))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0
 
@@ -56,7 +55,7 @@ def inference_fn(test_data_loader, model, device):
     for images in tqdm(test_data_loader):
         # gpu 계산을 위해 image.to(device)
         images = list(image.to(device) for image in images)
-        output = model(images)
+        output = model.inference(images)
         for out in output:
             outputs.append({'boxes': out['boxes'].tolist(), 'scores': out['scores'].tolist(), 'labels': out['labels'].tolist()})
     return outputs
@@ -65,11 +64,11 @@ def inference_fn(test_data_loader, model, device):
 def main():
     device = torch.device('cuda')
 
-    annotation = '../../dataset/test.json' # annotation 경로
-    data_dir = '../../dataset' # dataset 경로
+    annotation = '/data/ephemeral/dataset/test.json' # annotation 경로
+    data_dir = '/data/ephemeral/dataset/test' # dataset 경로
     test_dataset = CustomDataset(annotation, data_dir)
     score_threshold = 0.05
-    check_point = './checkpoints/faster_rcnn_torchvision_checkpoints.pth' # 체크포인트 경로
+    check_point = '/data/ephemeral/model/model_fasterrcnn_resnet50_fpn/best_loss.pth' # 체크포인트 경로
     
     test_data_loader = DataLoader(
         test_dataset,
@@ -82,11 +81,8 @@ def main():
 
     # torchvision model 불러오기
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-    num_classes = 11  # 10 class + background
-    # get number of input features for the classifier
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-    model.to(device)
+    model_module = getattr(module_arch, "fasterrcnn_resnet50_fpn")
+    model = model_module(num_classes=11).to(device)
     model.load_state_dict(torch.load(check_point))
     model.eval()
 
