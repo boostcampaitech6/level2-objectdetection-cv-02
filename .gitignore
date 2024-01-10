@@ -140,6 +140,7 @@ dmypy.json
 datasets/
 runs/
 wandb/
+yolo_train/
 tests/
 .DS_Store
 
