@@ -1,0 +1,84 @@
+각 클래스별 bbox들의 개수
+        upper_limit: 8366.38
+        lower_limit: -3554.62
+           skewness: 0.75
+               mean: 2341.20
+                std: 2194.61
+                min: 159
+                max: 6349
+                 Q1: 915.75
+             median: 1121.5
+                 Q3: 3896.0
+
+각 클래스별 bbox들의 area의 평균
+        upper_limit: 128155.20
+        lower_limit: 43100.56
+           skewness: 1.75
+               mean: 93258.00
+                std: 38120.76
+                min: 50049.77358490566
+                max: 190860.55097613882
+                 Q1: 74996.04521083349
+             median: 85169.72723775438
+                 Q3: 96259.70527180945
+
+각 클래스별 bbox들의 aspect_ratio의 평균
+        upper_limit: 1.72
+        lower_limit: 0.91
+           skewness: -0.36
+               mean: 1.29
+                std: 0.15
+                min: 1.0409886234452665
+                max: 1.4757950502906412
+                 Q1: 1.2159620225329817
+             median: 1.297075957869187
+                 Q3: 1.4184586111478392
+
+각 이미지별 bbox들의 개수
+        upper_limit: 13.50
+        lower_limit: -6.50
+           skewness: 2.87
+               mean: 4.80
+                std: 6.43
+                min: 1
+                max: 69
+                 Q1: 1.0
+             median: 2.0
+                 Q3: 6.0
+
+각 이미지별 bbox들의 area의 평균
+        upper_limit: 453209.44
+        lower_limit: -169722.46
+           skewness: 1.66
+               mean: 161524.90
+                std: 136275.09
+                min: 3720.25
+                max: 968000.0
+                 Q1: 63877.0
+             median: 119107.79166666666
+                 Q3: 219609.97499999998
+
+각 이미지별 bbox들의 aspect_ratio의 평균
+        upper_limit: 2.53
+        lower_limit: -0.18
+           skewness: 5.07
+               mean: 1.26
+                std: 0.70
+                min: 0.0844192334900203
+                max: 17.02127659574468
+                 Q1: 0.8334573994466093
+             median: 1.156488336099353
+                 Q3: 1.5118579362010636
+
+각 이미지별 클래스의 개수
+        upper_limit: 6.00
+        lower_limit: -2.00
+           skewness: 1.39
+               mean: 1.95
+                std: 1.25
+                min: 1
+                max: 7
+                 Q1: 1.0
+             median: 1.0
+                 Q3: 3.0
+
