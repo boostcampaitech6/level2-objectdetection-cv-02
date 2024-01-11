@@ -2,9 +2,9 @@
 ## 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 
 
-path: /data/ephemeral/home/dataset/stratified/fold_0  # dataset root dir
-train: img/train  # train images (relative to 'path') 128 images
-val: img/val # val images (relative to 'path') 128 images
+path: /data/ephemeral/home/dataset/stratified_newlabel/fold_4  # dataset root dir
+train: train  # train images (relative to 'path') 128 images
+val: val # val images (relative to 'path') 128 images
 test: /data/ephemeral/home/dataset/test # test images (optional)
 
 # Classes
