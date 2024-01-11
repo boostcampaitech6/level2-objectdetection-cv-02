@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .checkloss_hook import CheckInvalidLossHook
-from .mean_teacher_hook import MeanTeacherHook
+from .mean_teacher_hook_backup import MeanTeacherHook
 from .memory_profiler_hook import MemoryProfilerHook
 from .num_class_check_hook import NumClassCheckHook
 from .pipeline_switch_hook import PipelineSwitchHook
@@ -11,11 +11,14 @@ from .visualization_hook import (DetVisualizationHook,
                                  GroundingVisualizationHook,
                                  TrackVisualizationHook)
 from .yolox_mode_switch_hook import YOLOXModeSwitchHook
+from .submission_hook import SubmissionHook
+# from .wandblogger_hook import MMDetWandbHook
+
 
 __all__ = [
     'YOLOXModeSwitchHook', 'SyncNormHook', 'CheckInvalidLossHook',
     'SetEpochInfoHook', 'MemoryProfilerHook', 'DetVisualizationHook',
     'NumClassCheckHook', 'MeanTeacherHook', 'trigger_visualization_hook',
     'PipelineSwitchHook', 'TrackVisualizationHook',
-    'GroundingVisualizationHook'
+    'GroundingVisualizationHook', 'SubmissionHook'
 ]
