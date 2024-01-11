@@ -62,7 +62,7 @@ def main(cfg):
 
     corr_df = convert_to_corr(train_df)
 
-    heat_corr_cls_per_img(corr_df)
+    heat_corr_cls_per_img(corr_df, cfg)
 
     help_skewness()
     cal_statisitcs(train_df, bbox_df, cfg)
@@ -119,7 +119,7 @@ def hist_ann_per_img(df, cfg):
     fig.update_layout(showlegend=False,
                     xaxis_title="<b>Number of Unique Images</b>",
                     yaxis_title="<b>Count of All Object Annotations</b>",)
-    fig.write_image('output/hist_ann_per_img.png')
+    fig.write_image(f'{cfg.output_path}/hist_ann_per_img.png')
     
 def hist_cls_per_img(df, cfg):
     ## Unique Class Per Image
@@ -132,7 +132,7 @@ def hist_cls_per_img(df, cfg):
     fig.update_layout(showlegend=False,
                     xaxis_title="<b>Number of Unique CLASS</b>",
                     yaxis_title="<b>Count of Unique IMAGE</b>",)
-    fig.write_image('output/hist_cls_per_img.png')
+    fig.write_image(f'{cfg.output_path}/hist_cls_per_img.png')
         
 def hist_ann_per_cls(df, cfg):
     ## Annotations Per Class
@@ -146,7 +146,7 @@ def hist_ann_per_cls(df, cfg):
     fig.update_layout(legend_title=None,
                     xaxis_title="",
                     yaxis_title="<b>Annotations Per Class</b>")
-    fig.write_image('output/hist_cls_per_img.png')
+    fig.write_image(f'{cfg.output_path}/hist_cls_per_img.png')
     
 def convert_to_bbox(df):
     bbox_df = pd.DataFrame()
@@ -205,7 +205,7 @@ def heat_bbox(bbox_df, cfg):
         plt.axis(False)
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
     
-    fig.savefig('output/heat_bbox.png')
+    fig.savefig(f'{cfg.output_path}/heat_bbox.png')
     
 def box_bbox_area(bbox_df, cfg):
     ## Distribution of bbox area
@@ -222,7 +222,7 @@ def box_bbox_area(bbox_df, cfg):
                     xaxis_title="",
                     yaxis_title="<b>Bounding Box Area %</b>",)
     
-    fig.write_image('output/box_bbox_area.png')
+    fig.write_image(f'{cfg.output_path}/box_bbox_area.png')
 
 def box_aspect_ratio(bbox_df, cfg):
     ## Aspect Ratio for bounding boxes by class
@@ -258,7 +258,7 @@ def box_aspect_ratio(bbox_df, cfg):
                 annotation_font_size=10,
                 annotation_font_color="green")
     
-    fig.write_image('output/box_bbox_aspect_ratio.png')
+    fig.write_image(f'{cfg.output_path}/box_bbox_aspect_ratio.png')
     
 def convert_to_corr(df):
     corr_df = df.groupby('image_id').class_name.value_counts().reset_index(name='cnt')
@@ -268,14 +268,14 @@ def convert_to_corr(df):
     corr_df = corr_df.groupby(['image_id']).agg(agg_dict).reset_index()
     return corr_df
     
-def heat_corr_cls_per_img(corr_df):
+def heat_corr_cls_per_img(corr_df,cfg):
     sns.clustermap(
         corr_df.iloc[:,1:].corr(),
         annot=True,
         cmap='RdYlBu_r',
         vmin=-1, vmax=1,
     )
-    plt.savefig('output/heat_corr_cls_per_img.png')
+    plt.savefig(f'{cfg.output_path}/heat_corr_cls_per_img.png')
 
 def get_iou(box1, box2):
     pass 
@@ -346,7 +346,7 @@ def print_statistics(name, values, write=False, file_path=''):
         with open(file_path, "a") as f: f.write("\n")
         
 def cal_statisitcs(df, bbox_df, cfg):
-    remove_output_txt(cfg.output_path)
+    remove_output_txt(os.join(cfg.output_path, 'output.txt'))
 
     print_statistics("각 클래스별 bbox들의 개수", df.class_name.value_counts(), True, cfg.output_path)
     print_statistics("각 클래스별 bbox들의 area의 평균", bbox_df.groupby('class_id').frac_bbox_area.mean()*1024*1024, True, cfg.output_path)
@@ -366,7 +366,7 @@ if __name__ == '__main__':
         "--anno_path", type=str, default='../../dataset/train.json'
     )
     parser.add_argument(
-        "--output_path", type=str, default='./output/output.txt'
+        "--output_path", type=str, default='./output/eda'
     )
 
     args = parser.parse_args()
