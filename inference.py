@@ -68,6 +68,7 @@ def inference_fn(test_data_loader, model, device):
 def make_submission_file(data_loader, model):
     prediction_strings = []
     file_names = []
+    iou_threshold = 0.05
     
     for image_batch in list(tqdm(data_loader)):
         with torch.no_grad():
@@ -83,6 +84,9 @@ def make_submission_file(data_loader, model):
 
             prediction_string = ''
             for pred_class, conf, box in zip(classes, conf, bboxes):
+                if conf < iou_threshold:
+                    continue
+                
                 prediction_string += str(int(pred_class))+ ' ' + str(conf) + ' ' + str(box[0]) + ' '  \
                     + str(box[1]) + ' ' + str(box[2]) + ' ' + str(box[3]) + ' '
             prediction_strings.append(prediction_string)
@@ -113,7 +117,8 @@ def main():
 
     # torchvision model 불러오기
     # model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-    model = YOLO(check_point) 
+    model = YOLO(check_point)
+    model.model.eval()
     # model_module = getattr(module_arch, "fasterrcnn_resnet50_fpn")
     # model = model_module(num_classes=11).to(device)
     # model.load_state_dict(torch.load(check_point))
