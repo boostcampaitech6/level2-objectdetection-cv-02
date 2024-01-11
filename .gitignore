@@ -1,5 +1,8 @@
 .gitignore
 # mmdetection/
+mmdetection/work_dirs
+wandb*
+*.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
