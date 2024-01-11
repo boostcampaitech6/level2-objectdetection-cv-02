@@ -48,6 +48,8 @@ LABEL_COLORS_WOUT_NO_FINDING = LABEL_COLORS[:8]+LABEL_COLORS[9:]
 
 
 def main(cfg):
+    os.makedirs(cfg.output_path, exist_ok=True)
+    
     train_df = load(cfg)
 
     hist_ann_per_img(train_df, cfg)
@@ -346,17 +348,18 @@ def print_statistics(name, values, write=False, file_path=''):
         with open(file_path, "a") as f: f.write("\n")
         
 def cal_statisitcs(df, bbox_df, cfg):
-    remove_output_txt(os.join(cfg.output_path, 'output.txt'))
+    txt_path = os.path.join(cfg.output_path, 'output.txt')
+    remove_output_txt(txt_path)
 
-    print_statistics("각 클래스별 bbox들의 개수", df.class_name.value_counts(), True, cfg.output_path)
-    print_statistics("각 클래스별 bbox들의 area의 평균", bbox_df.groupby('class_id').frac_bbox_area.mean()*1024*1024, True, cfg.output_path)
-    print_statistics("각 클래스별 bbox들의 aspect_ratio의 평균", bbox_df.groupby('class_id').aspect_ratio.mean(), True, cfg.output_path)
+    print_statistics("각 클래스별 bbox들의 개수", df.class_name.value_counts(), True, txt_path)
+    print_statistics("각 클래스별 bbox들의 area의 평균", bbox_df.groupby('class_id').frac_bbox_area.mean()*1024*1024, True, txt_path)
+    print_statistics("각 클래스별 bbox들의 aspect_ratio의 평균", bbox_df.groupby('class_id').aspect_ratio.mean(), True, txt_path)
 
-    print_statistics("각 이미지별 bbox들의 개수", df.image_id.value_counts(), True, cfg.output_path)
-    print_statistics("각 이미지별 bbox들의 area의 평균", bbox_df.groupby('image_id').frac_bbox_area.mean()*1024*1024, True, cfg.output_path)
-    print_statistics("각 이미지별 bbox들의 aspect_ratio의 평균", bbox_df.groupby('image_id').aspect_ratio.mean(), True, cfg.output_path)
+    print_statistics("각 이미지별 bbox들의 개수", df.image_id.value_counts(), True, txt_path)
+    print_statistics("각 이미지별 bbox들의 area의 평균", bbox_df.groupby('image_id').frac_bbox_area.mean()*1024*1024, True, txt_path)
+    print_statistics("각 이미지별 bbox들의 aspect_ratio의 평균", bbox_df.groupby('image_id').aspect_ratio.mean(), True, txt_path)
 
-    print_statistics("각 이미지별 클래스의 개수", df.groupby('image_id').class_name.nunique(), True, cfg.output_path)
+    print_statistics("각 이미지별 클래스의 개수", df.groupby('image_id').class_name.nunique(), True, txt_path)
     
     
 if __name__ == '__main__':
