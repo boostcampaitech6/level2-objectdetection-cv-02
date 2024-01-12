@@ -9,9 +9,10 @@ _base_ = [
 ### Setting ###
 # dataset 설정을 해줍니다.
 data_root='../../dataset/'
-k='2'
-epoch = 5
+k='0'
+epoch = 10
 batch_size = 16
+resize = (1333, 800)
 
 ### Backbone ###
 # model 끝단에 num_classes 부분을 바꿔주기 위해 해당 모듈을 불러와 선언해줍니다.
@@ -112,7 +113,7 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
-    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
+    dict(type='Resize', img_scale=resize, keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
@@ -123,7 +124,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1333, 800),
+        img_scale=resize,
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),

@@ -9,7 +9,7 @@ _base_ = [
 ### Setting ###
 # dataset 설정을 해줍니다.
 data_root='../../dataset/'
-k='2'
+k='1'
 epoch = 10
 batch_size = 16
 resize = (1024,1024)
