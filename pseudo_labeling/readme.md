@@ -5,6 +5,11 @@ Dataset
 |   |-- test
 |   `-- val
 
+### pseudo_labeling.yaml 경로
+```
+/data/ephemeral/home/yolov8/ultralytics/cfg/datasets/pseudo_labeling.yaml
+```
+
 ### 진행전에 해야할 것
 1. test디렉토리 복사 해서 pseudo_labeling 디렉토리를 새로 만들 것을 추천
 2. stratified 한 fold 중에서 하나를 골라 val디렉토리를 복사 후 pseudo_labeling 디렉토리에 붙여넣기
