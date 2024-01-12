@@ -1,6 +1,19 @@
-# 사용하고 싶은 model의 config 파일을 불러옵니다.
-_base_ = '../mmdetection/configs/cascade_rcnn/cascade-rcnn_r50_fpn_1x_coco.py'
+### How to excute ###
+# python tools/train.py config.py --cfg-options randomness.seed=2024
 
+# 사용하고 싶은 model의 config 파일을 불러옵니다.
+_base_ = [
+    '../mmdetection/configs/cascade_rcnn/cascade-rcnn_r50_fpn_1x_coco.py'
+]
+
+### Setting ###
+# dataset 설정을 해줍니다.
+data_root='../../dataset/'
+k='2'
+epoch = 5
+batch_size = 16
+
+### Backbone ###
 # model 끝단에 num_classes 부분을 바꿔주기 위해 해당 모듈을 불러와 선언해줍니다.
 model = dict(
     roi_head=dict(
@@ -91,16 +104,48 @@ model = dict(
                 debug=False)
         ]))
 
+### Dataset ###
+# img_norm_cfg = dict(  # 사전 학습 모델의 mean, std에 큰 차이가 없어 우리의 것으로 최적화 시켜주었습니다.
+#     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+img_norm_cfg = dict(
+    mean=[124.338, 118.218, 110.6955], std=[60.333, 58.956, 60.996], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='Normalize', **img_norm_cfg),
+    dict(type='Pad', size_divisor=32),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(type='Normalize', **img_norm_cfg),
+            dict(type='Pad', size_divisor=32),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img']),
+        ])
+]
+
+### Scheduler ###
+train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=epoch, val_interval=1)
+auto_scale_lr = dict(enable=False, base_batch_size=16)
+
+
 # custom hooks을 만들었다면 여기서 선언해 사용할 수 있습니다.
 # /data/ephemeral/.vm/lib/python3.10/site-packages/mmdet/engine/hooks/
 custom_hooks = [
     dict(type='SubmissionHook', test_out_dir='submit'),
-    dict(type='MMDetWandbHook'),
 ]
 
-# dataset 설정을 해줍니다.
-data_root='../../dataset/'
-k='0'
 metainfo = {
     'classes': ('General trash', 'Paper', 'Paper pack', 'Metal', 'Glass',
                 'Plastic', 'Styrofoam', 'Plastic bag', 'Battery', 'Clothing',),
@@ -110,7 +155,7 @@ metainfo = {
     ]
 }
 train_dataloader = dict(
-    batch_size=8,
+    batch_size=batch_size,
     dataset=dict(
         data_root=data_root,
         metainfo=metainfo,
