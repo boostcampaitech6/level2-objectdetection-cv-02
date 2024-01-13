@@ -9,7 +9,7 @@ _base_ = [
 ### Setting ###
 # dataset 설정을 해줍니다. NOTE: 여기만 바꾸는 것이 아니라 우리가 선언한 변수들을 활용하는 부분까지 아래에 작성해주어야 합니다.
 data_root='../../dataset/'
-k='3'
+k='1'
 epoch = 10
 batch_size = 16
 resize = (1024,1024)
@@ -25,6 +25,7 @@ train_pipeline = [  # NOTE: 배열은 전체 다 선언해주어야 합니다.
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=resize, keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
+    dict(type='RandomCenterCropPad', crop_size=(800,800)),
     dict(type='RandomFlip', prob=0.5),
     dict(type='PackDetInputs'),
 ]

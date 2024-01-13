@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .checkloss_hook import CheckInvalidLossHook
-from .mean_teacher_hook_backup import MeanTeacherHook
+from .mean_teacher_hook import MeanTeacherHook
 from .memory_profiler_hook import MemoryProfilerHook
 from .num_class_check_hook import NumClassCheckHook
 from .pipeline_switch_hook import PipelineSwitchHook

@@ -17,6 +17,17 @@ resize = (1333, 800)
 ### Backbone ###
 # model 끝단에 num_classes 부분을 바꿔주기 위해 해당 모듈을 불러와 선언해줍니다.
 model = dict(
+    data_preprocessor=dict(
+        type='DetDataPreprocessor',
+        # Image normalization parameters
+        # mean=[123.675, 116.28, 103.53],   # origin
+        # std=[58.395, 57.12, 57.375],
+        mean=[124.338, 118.218, 110.6955],
+        std=[60.333, 58.956, 60.996],
+        bgr_to_rgb=True,
+        # Image padding parameters
+        pad_mask=True,  # In instance segmentation, the mask needs to be padded
+        pad_size_divisor=32),  # Padding the image to multiples of 32
     roi_head=dict(
         bbox_head=[
             dict(
@@ -108,32 +119,20 @@ model = dict(
 ### Dataset ###
 # img_norm_cfg = dict(  # 사전 학습 모델의 mean, std에 큰 차이가 없어 우리의 것으로 최적화 시켜주었습니다.
 #     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
-img_norm_cfg = dict(
-    mean=[124.338, 118.218, 110.6955], std=[60.333, 58.956, 60.996], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
-    dict(type='Resize', img_scale=resize, keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
-    dict(type='RandomFlip', flip_ratio=0.5),
-    dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size_divisor=32),
-    dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
+    dict(type='Resize', scale=resize, keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='PackDetInputs'),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
+    dict(type='Resize', scale=resize, keep_ratio=True),
     dict(
-        type='MultiScaleFlipAug',
-        img_scale=resize,
-        flip=False,
-        transforms=[
-            dict(type='Resize', keep_ratio=True),
-            dict(type='RandomFlip'),
-            dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=32),
-            dict(type='ImageToTensor', keys=['img']),
-            dict(type='Collect', keys=['img']),
-        ])
+        type='PackDetInputs',
+        meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
+                   'scale_factor'))
 ]
 
 ### Scheduler ###
@@ -158,12 +157,14 @@ metainfo = {
 train_dataloader = dict(
     batch_size=batch_size,
     dataset=dict(
+        pipeline=train_pipeline,  
         data_root=data_root,
         metainfo=metainfo,
         ann_file=f'fold_{k}/stratified_train.json',
         data_prefix=dict(img='')))
 val_dataloader = dict(
     dataset=dict(
+        pipeline=test_pipeline,  
         data_root=data_root,
         metainfo=metainfo,
         ann_file=f'fold_{k}/stratified_val.json',
@@ -171,6 +172,7 @@ val_dataloader = dict(
 
 test_dataloader = dict(
     dataset=dict(
+        pipeline=test_pipeline,  
         data_root=data_root,
         metainfo=metainfo,
         ann_file=f'test.json',
