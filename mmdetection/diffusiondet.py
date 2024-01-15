@@ -93,7 +93,7 @@ train_pipeline = [
             #     backend=backend),
             dict(
                 type='RandomChoiceResize',
-                scales=[(2048, 2048), (512,512), (1024, 1024)],
+                scales=[(512,512), (1024, 1024)],
                 keep_ratio=True,
                 backend=backend),
         ],
@@ -199,7 +199,7 @@ train_cfg = dict(
     type='IterBasedTrainLoop',
     # max_iters=450000,     # origin
     # val_interval=75000,
-    max_iters=45000,
+    max_iters=75000,
     val_interval=1000)
 
 # learning rate
@@ -209,7 +209,7 @@ param_scheduler = [
     dict(
         type='MultiStepLR',
         begin=0,
-        end=45000,
+        end=75000,
         by_epoch=False,
         milestones=[35000, 42000],
         gamma=0.1)

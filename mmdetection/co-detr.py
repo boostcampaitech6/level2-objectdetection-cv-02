@@ -1,11 +1,11 @@
-_base_ = ['co_dino_5scale_swin_l_16xb1_1x_coco.py']
+_base_ = ['projects/CO-DETR/configs/codino/co_dino_5scale_swin_l_16xb1_1x_coco.py']
 
 pretrained = 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window12_384_22k.pth'  # noqa
 
 ### Setting ###
 data_root='../../dataset/'
 k='1'
-batch_size = 4
+batch_size = 1
 num_dec_layer = 6
 loss_lambda = 2.0
 num_classes = 10
@@ -13,6 +13,15 @@ num_classes = 10
 
 model = dict(
     type='CoDETR',
+    data_preprocessor=dict(
+        type='DetDataPreprocessor',
+        # mean=[123.675, 116.28, 103.53],   # origin
+        # std=[58.395, 57.12, 57.375],
+        mean=[124.338, 118.218, 110.6955],
+        std=[60.333, 58.956, 60.996],
+        bgr_to_rgb=True,
+        pad_mask=True,  # In instance segmentation, the mask needs to be padded
+        pad_size_divisor=32),  # Padding the image to multiples of 32
     backbone=dict(
         type='SwinTransformer',
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
@@ -92,28 +101,25 @@ train_pipeline = [
             [
                 dict(
                     type='RandomChoiceResize',
-                    scales=[(480, 1333), (512, 1333), (544, 1333), (576, 1333),
-                            (608, 1333), (640, 1333), (672, 1333), (704, 1333),
-                            (736, 1333), (768, 1333), (800, 1333)],
+                    scales=[(512,512), (1024, 1024)],
                     keep_ratio=True)
             ],
             [
                 dict(
                     type='RandomChoiceResize',
-                    # The radio of all image in train dataset < 7
-                    # follow the original implement
-                    scales=[(400, 4200), (500, 4200), (600, 4200)],
+                    scales=[(400, 400), (500, 500), (600, 600)], # TODO
                     keep_ratio=True),
                 dict(
                     type='RandomCrop',
                     crop_type='absolute_range',
-                    crop_size=(384, 600),
+                    crop_size=(384, 384),
                     allow_negative_crop=True),
                 dict(
                     type='RandomChoiceResize',
-                    scales=[(480, 1333), (512, 1333), (544, 1333), (576, 1333),
-                            (608, 1333), (640, 1333), (672, 1333), (704, 1333),
-                            (736, 1333), (768, 1333), (800, 1333)],
+                    scales=[(480, 480), (512, 512), (544, 544),  # TODO
+                            (576, 576), (608, 608), (640, 640),
+                            (672, 672), (704, 704), (736, 736),
+                            (768, 768), (800, 800)],
                     keep_ratio=True)
             ]
         ]),
@@ -122,7 +128,7 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=_base_.backend_args),
-    dict(type='Resize', scale=(1333, 800), keep_ratio=True),
+    dict(type='Resize', scale=(1024, 1024), keep_ratio=True),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(
         type='PackDetInputs',
