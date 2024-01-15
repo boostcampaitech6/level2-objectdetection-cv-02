@@ -22,10 +22,15 @@ model = dict(
 
 ### Dataset ###
 train_pipeline = [  # NOTE: 배열은 전체 다 선언해주어야 합니다.
-    dict(type='LoadImageFromFile'),
+    dict(type='LoadImageFromFile', to_float32=True),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=resize, keep_ratio=True),    # 사전 학습 모델의 scale을 그대로 사용할까요?
-    dict(type='RandomCenterCropPad', crop_size=(800,800)),
+    dict(type='RandomCenterCropPad', 
+        crop_size=(800,800), 
+        test_pad_mode=None,
+        mean=[124.338, 118.218, 110.6955],
+        std=[60.333, 58.956, 60.996],
+        to_rgb=True),
     dict(type='RandomFlip', prob=0.5),
     dict(type='PackDetInputs'),
 ]
