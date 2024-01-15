@@ -11,10 +11,8 @@ _base_ = [
 ### Setting ###
 # dataset 설정을 해줍니다.
 data_root='../../dataset/'
-k='3'
-epoch = 10
-batch_size = 8
-# resize = (1024, 1024)
+k='1'
+batch_size = 4
 
 custom_imports = dict(
     imports=['projects.DiffusionDet.diffusiondet'], allow_failed_imports=False)
@@ -132,7 +130,7 @@ test_pipeline = [
         type='LoadImageFromFile',
         backend_args=_base_.backend_args,
         imdecode_backend=backend),
-    dict(type='Resize', scale=(1333, 800), keep_ratio=True, backend=backend),   # TODO
+    dict(type='Resize', scale=(1024, 1024), keep_ratio=True, backend=backend),   # TODO
     # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True),
     dict(
@@ -170,7 +168,7 @@ val_dataloader = dict(
         ann_file=f'fold_{k}/stratified_val.json',
         data_prefix=dict(img='')))
 test_dataloader = dict(
-    batch_size=batch_size,
+    batch_size=1,
     dataset=dict(
         pipeline=test_pipeline,  
         data_root=data_root,
@@ -218,17 +216,18 @@ param_scheduler = [
 ]
 
 ### Checkpoint ###
-# default_hooks = dict(checkpoint=dict(by_epoch=False, interval=1000, max_keep_ckpts=3))
-default_hooks = dict(checkpoint=dict(interval=-1))  # no check-point, save only best result
+# evaluation = dict(interval=1, metric='bbox', save_best='bbox_mAP50')
 log_processor = dict(by_epoch=False)
-# default_hooks = dict(
-#     checkpoint=dict(
-#         by_epoch=False,
-#         # type='CheckpointHook',
-#         metric='bbox',
-#         save_best='bbox_mAP', 
-#         max_keep_ckpts=3))
-evaluation = dict(interval=1, metric='bbox', save_best='bbox_mAP50')
+default_hooks = dict(
+    checkpoint=dict(
+        by_epoch=False, 
+        type="CheckpointHook",
+        rule="greater",
+        save_best="coco/bbox_mAP_50",
+        interval=-1,
+        max_keep_ckpts=3,
+    )
+)
 
 ### Hook ###
 custom_hooks = [
