@@ -1,3 +1,10 @@
+.gitignore
+# mmdetection/
+mmdetection/work_dirs
+wandb*
+*.pth
+tools/output/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
