@@ -1,11 +1,11 @@
-_base_ = ['co_dino_5scale_swin_l_16xb1_1x_coco.py']
+_base_ = ['projects/CO-DETR/configs/codino/co_dino_5scale_swin_l_16xb1_1x_coco.py']
 
 pretrained = 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window12_384_22k.pth'  # noqa
 
 ### Setting ###
-data_root='../../dataset/'
+data_root='/data/ephemeral/home/dataset/'
 k='1'
-batch_size = 4
+batch_size = 1
 num_dec_layer = 6
 loss_lambda = 2.0
 num_classes = 10
@@ -176,7 +176,19 @@ test_evaluator = dict(
     ann_file=data_root + 'test.json',
     classwise=True,
     )
-
+###
+# optimizer
+optim_wrapper = dict(
+    type='OptimWrapper',
+    optimizer=dict(type='AdamW', lr=0.0002, weight_decay=0.0001),
+    clip_grad=dict(max_norm=0.1, norm_type=2),
+    paramwise_cfg=dict(
+        custom_keys={
+            'backbone': dict(lr_mult=0.1),
+            'sampling_offsets': dict(lr_mult=0.1),
+            'reference_points': dict(lr_mult=0.1)
+        }))
+###
 # learning policy
 max_epochs = 12
 train_cfg = dict(
