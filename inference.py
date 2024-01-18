@@ -110,7 +110,7 @@ def main():
     )
     
     # score_threshold = 0.05
-    check_point = '/data/ephemeral/home/yolov8/yolo_train/yolov8m_AdamW/weights/best.pt' # 체크포인트 경로
+    check_point = '/data/ephemeral/home/yolov8/yolo_train/yolov8x_fold2/weights/best.pt' # 체크포인트 경로
     
     # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # print(device)
