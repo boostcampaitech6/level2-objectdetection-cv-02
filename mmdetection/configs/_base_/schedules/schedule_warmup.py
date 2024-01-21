@@ -11,3 +11,5 @@ lr_config = dict(
     warmup_ratio=0.005,
     min_lr_ratio=1e-5)
 runner = dict(type='EpochBasedRunner', max_epochs=12)
+
+auto_resume=True
