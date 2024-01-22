@@ -190,7 +190,7 @@ optim_wrapper = dict(
         }))
 ###
 # learning policy
-max_epochs = 12
+max_epochs = 30
 train_cfg = dict(
     _delete_=True,
     type='EpochBasedTrainLoop',
