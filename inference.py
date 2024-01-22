@@ -3,8 +3,8 @@ from ultralytics import YOLO
 import numpy as np
 import os
 
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
+# import albumentations as A
+# from albumentations.pytorch import ToTensorV2
 import torch
 
 from torch.utils.data import DataLoader, Dataset
@@ -55,15 +55,15 @@ class CustomDataset(Dataset):
         return len(self.coco.getImgIds())
     
 
-def inference_fn(test_data_loader, model, device):
-    outputs = []
-    for images in tqdm(test_data_loader):
-        # gpu 계산을 위해 image.to(device)
-        images = list(image.to(device) for image in images)
-        output = model.inference(images)
-        for out in output:
-            outputs.append({'boxes': out['boxes'].tolist(), 'scores': out['scores'].tolist(), 'labels': out['labels'].tolist()})
-    return outputs
+# def inference_fn(test_data_loader, model, device):
+#     outputs = []
+#     for images in tqdm(test_data_loader):
+#         # gpu 계산을 위해 image.to(device)
+#         images = list(image.to(device) for image in images)
+#         output = model.inference(images)
+#         for out in output:
+#             outputs.append({'boxes': out['boxes'].tolist(), 'scores': out['scores'].tolist(), 'labels': out['labels'].tolist()})
+#     return outputs
 
 def make_submission_file(data_loader, model):
     prediction_strings = []
@@ -110,7 +110,7 @@ def main():
     )
     
     # score_threshold = 0.05
-    check_point = '/data/ephemeral/home/yolov8/yolo_train/yolov8x_fold2/weights/best.pt' # 체크포인트 경로
+    check_point = './yolo_train/yolov8x12/weights/best.pt' # 체크포인트 경로
     
     # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # print(device)
