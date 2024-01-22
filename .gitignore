@@ -1,6 +1,7 @@
 *.pth
 wandb
 tools/output/
+mmdetection/work_dirs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
