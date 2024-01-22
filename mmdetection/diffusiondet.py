@@ -11,7 +11,7 @@ _base_ = [
 ### Setting ###
 # dataset 설정을 해줍니다.
 data_root='../../dataset/'
-k='1'
+k='0'
 batch_size = 4
 
 custom_imports = dict(
@@ -84,23 +84,15 @@ train_pipeline = [
     dict(
         type='RandomChoice',
         transforms=[[
-            # dict(
-            #     type='RandomChoiceResize',
-            #     scales=[(480, 1333), (512, 1333), (544, 1333), (576, 1333), # TODO
-            #             (608, 1333), (640, 1333), (672, 1333), (704, 1333),
-            #             (736, 1333), (768, 1333), (800, 1333)],
-            #     keep_ratio=True,
-            #     backend=backend),
             dict(
                 type='RandomChoiceResize',
-                scales=[(512,512), (1024, 1024)],
+                scales=[(512,512), (1024, 1024), (2048, 2048)],
                 keep_ratio=True,
                 backend=backend),
         ],
         [
             dict(
                 type='RandomChoiceResize',
-                # scales=[(400, 1333), (500, 1333), (600, 1333)], # TODO
                 scales=[(400, 400), (500, 500), (600, 600)], # TODO
                 keep_ratio=True,
                 backend=backend),
@@ -111,14 +103,10 @@ train_pipeline = [
                 allow_negative_crop=True),
             dict(
                 type='RandomChoiceResize',
-                # scales=[(480, 1333), (512, 1333), (544, 1333),  # TODO
-                #         (576, 1333), (608, 1333), (640, 1333),
-                #         (672, 1333), (704, 1333), (736, 1333),
-                #         (768, 1333), (800, 1333)],
                 scales=[(480, 480), (512, 512), (544, 544),  # TODO
                         (576, 576), (608, 608), (640, 640),
                         (672, 672), (704, 704), (736, 736),
-                        (768, 768), (800, 800)],
+                        (768, 768), (800, 800), (1024, 1024)],
                 keep_ratio=True,
                 backend=backend)
         ]]),
@@ -224,10 +212,36 @@ default_hooks = dict(
         type="CheckpointHook",
         rule="greater",
         save_best="coco/bbox_mAP_50",
-        interval=-1,
-        max_keep_ckpts=3,
+        interval=1000,
+        max_keep_ckpts=10,
     )
 )
+
+tta_model = dict(
+    type='DetTTAModel',
+    tta_cfg=dict(nms=dict(
+                   type='nms',
+                   iou_threshold=0.5),
+                   max_per_img=100))
+
+img_scales = [(512, 512), (1024, 1024), (2048, 2048)]
+tta_pipeline = [
+    dict(type='LoadImageFromFile',
+        backend_args=None),
+    dict(
+        type='TestTimeAug',
+        transforms=[[
+            dict(type='Resize', scale=s, keep_ratio=True) for s in img_scales
+        ], [ # It uses 2 flipping transformations (flipping and not flipping).
+            dict(type='RandomFlip', prob=1.),
+            dict(type='RandomFlip', prob=0.)
+        ], [
+            dict(
+               type='PackDetInputs',
+               meta_keys=('img_id', 'img_path', 'ori_shape',
+                       'img_shape', 'scale_factor', 'flip',
+                       'flip_direction'))
+       ]])]
 
 ### Hook ###
 custom_hooks = [
